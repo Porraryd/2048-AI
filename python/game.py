@@ -8,12 +8,17 @@ LEFT = 3
 
 class Game:
 
-    def __init__(self) :
+    def __init__(self, startState=None, trainingMode=False) :
         self.BOARD_SIZE = 4
         self.START_TILES = 2
-        self.grid = Grid(self.BOARD_SIZE)
+        self.trainingMode = trainingMode
+        self.grid = Grid(self.BOARD_SIZE, startState)
+        if startState == None:
+            self.addStartTiles()
         self.score = 0
-        self.addStartTiles()
+        
+    def getState(self) :
+        return self.grid.getState()
 
     def printBoard(self) :
         self.grid.printGrid()
@@ -26,7 +31,7 @@ class Game:
     def addRandomTile(self) :
         if self.grid.cellEmpty() :
             (x,y) = self.grid.getEmptyCell()
-            value = 2 if random.random() < 0.9 else 4
+            value = 1 if random.random() < 0.9 else 2
             self.grid.setCell(x,y,value)
 
     def addStartTiles(self) : 
@@ -74,14 +79,14 @@ class Game:
                     if (self.cellInBounds(nextCell[0],nextCell[1]) and
                         mergedTile[nextCell] == 0 and
                         self.grid.getCell(nextCell[0],nextCell[1]) == val) :
-                        self.grid.setCell(nextCell[0],nextCell[1], val * 2)
+                        self.grid.setCell(nextCell[0],nextCell[1], val +1)
                         self.grid.setCell(curCell[0],curCell[1], 0)
                         moved = True
                         mergedTile[nextCell] = 1
-                        self.score += val*2
+                        self.score += pow(2,val+1)
 
         #If anything happened to the board, add a random tile 
-        if moved :
+        if moved and not self.trainingMode :
             self.addRandomTile()
 
     def cellInBounds(self, x, y) :
@@ -108,76 +113,39 @@ class Game:
         return (not (self.grid.cellEmpty() or self.mergeExists()))
 
 class Grid:
-	def __init__(self, size) : 
-		#Internal representation, 1d array going from top-left. 
-		self.GRID_SIZE = size
-		self.state = [0 for x in range(size*size)]
+    def __init__(self, size, startState=None) : 
+        #Internal representation, 1d array going from top-left. 
+        self.GRID_SIZE = size
+        if startState == None :
+            self.state = [0 for x in range(size*size)]
+        else : 
+            self.state = list(startState)
 
-	#Returns true if any cell is empty
-	def cellEmpty(self) :
-		return 0 in self.state
+    #Returns true if any cell is empty
+    def cellEmpty(self) :
+        return 0 in self.state
 
-	#Get a random empty cell, returns (x,y)
-	def getEmptyCell(self) :
-		indices = [i for i in range(self.GRID_SIZE*self.GRID_SIZE) if self.state[i] == 0]
-		index = random.choice(indices)
-		return (index % self.GRID_SIZE, index / self.GRID_SIZE)
+    #Returns the raw 16-size array state representation
+    def getState(self) :
+        return tuple(self.state)
 
-	def getCell(self, x, y) : 
-		return self.state[x+y*self.GRID_SIZE]
+    #Get a random empty cell, returns (x,y)
+    def getEmptyCell(self) :
+        indices = [i for i in range(self.GRID_SIZE*self.GRID_SIZE) if self.state[i] == 0]
+        index = random.choice(indices)
+        return (index % self.GRID_SIZE, index / self.GRID_SIZE)
 
-	def setCell(self,x,y,val) :
-		self.state[x+y*self.GRID_SIZE] = val;
+    def getCell(self, x, y) : 
+        return self.state[x+y*self.GRID_SIZE]
 
-	def printGrid(self) :
-		for i in range(self.GRID_SIZE) :
-			print [cell for cell in self.state[i*self.GRID_SIZE:(i+1)*self.GRID_SIZE]]
+    def setCell(self,x,y,val) :
+        self.state[x+y*self.GRID_SIZE] = val;
 
+    def printGrid(self) :
+        for i in range(self.GRID_SIZE) :
+            print [cell for cell in self.state[i*self.GRID_SIZE:(i+1)*self.GRID_SIZE]]    
 
 ##################################################################
 ##################################################################
 ##################################################################
-
-### MAIN ###
-mode = 'random'
-printBoard = False
-game = Game()
-game.printBoard()
-numGames = 0
-maxGames = 1000
-scoreamount =0
-while True:
-    if (mode == 'manual') :
-        print '------------------------------'
-        print 'Choose your move: (L, R, U, D)'
-        print '------------------------------'
-        sys.stdout.write('> ')
-        line = sys.stdin.readline()
-        if not line: break
-        line = line.strip()
-        if line == 'L' :
-            game.move(LEFT)
-        if line == 'R' :
-            game.move(RIGHT)
-        if line == 'U' :
-            game.move(UP)
-        if line == 'D' :
-            game.move(DOWN)
-
-    if (mode == 'random') :
-        move = random.randint(0,3)
-        game.move(move)
-
-    if printBoard :
-        game.printBoard()
-
-    if (game.gameOver()) :
-        print 'Game over. Score is ' + str(game.score)
-        numGames += 1
-        scoreamount +=game.score
-        game.reset()
-        if (numGames == 1000) :
-            print 'Average score: '+ str(scoreamount/float(1000))
-            break
-
 
