@@ -13,6 +13,7 @@ game = game.Game()
 numGames = 0
 scoreamount =0
 maxTile = 0
+win = 0
 while True:
     if (mode == 'manual') :
         print '------------------------------'
@@ -55,10 +56,13 @@ while True:
         maxTile = max(maxTile, max(game.getState()))
         numGames += 1
         scoreamount +=game.score
+        if pow(2,maxTile) == 2048:
+            win += 1 
         game.reset()
         if (numGames == 20) :
-            print 'Average score: '+ str(scoreamount/float(20)) + '. Max tile : ' + str(pow(2,maxTile))
+            print 'Average score: '+ str(scoreamount/float(20)) + '. Max tile : ' + str(pow(2,maxTile)) +  '. Win rate: ' + str(win/float(20))
             numGames = 0
+            win = 0
             scoreamount= 0
             maxTile = 0
             TDLearner.saveWeights()
