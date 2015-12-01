@@ -1,6 +1,7 @@
 import collections
 import game
 import copy, random
+import pickle
 
 UP = 0
 RIGHT = 1
@@ -40,8 +41,20 @@ class TDAgent() :
     def learnEval(self, state, action, reward, newState) :
         newV = self.V(newState)
         V = self.V(state)
+        # print 'self.weights ', self.weights
         for f, v in self.featureExtractor(state).iteritems():
             self.weights[f] = self.weights[f] - 0.007*(V-(reward+(1*newV)))*v 
+
+
+    def saveWeights(self):
+        # print 'self. s',self.weights
+        with open('saved_weights.txt', 'w') as file_:
+            pickle.dump(self.weights, file_)
+
+    def loadWeights(self):
+        with open('saved_weights.txt','r') as myFile:
+            self.weights = pickle.load(myFile)
+
 
     #Calculate the estimated value of a state using the current weight vector
     def V(self, state) :

@@ -4,6 +4,7 @@ import sys, copy, random
 
 ### MAIN ###
 TDLearner = rlagent.TDAgent()
+TDLearner.loadWeights()
 
 mode = 'TD'
 printBoard = False
@@ -50,13 +51,15 @@ while True:
 
     if (game.gameOver()) :
         #print 'Game over. Score is ' + str(game.score)
+
         maxTile = max(maxTile, max(game.getState()))
         numGames += 1
         scoreamount +=game.score
         game.reset()
-        if (numGames == 200) :
-            print 'Average score: '+ str(scoreamount/float(200)) + '. Max tile : ' + str(pow(2,maxTile))
+        if (numGames == 20) :
+            print 'Average score: '+ str(scoreamount/float(20)) + '. Max tile : ' + str(pow(2,maxTile))
             numGames = 0
             scoreamount= 0
             maxTile = 0
+            TDLearner.saveWeights()
 
