@@ -8,10 +8,9 @@ LEFT = 3
 
 class Game:
 
-    def __init__(self, startState=None, trainingMode=False) :
+    def __init__(self, startState=None) :
         self.BOARD_SIZE = 4
         self.START_TILES = 2
-        self.trainingMode = trainingMode
         self.grid = Grid(self.BOARD_SIZE, startState)
         if startState == None:
             self.addStartTiles()
@@ -20,6 +19,10 @@ class Game:
     def getState(self) :
         return self.grid.getState()
 
+    #Returns the state BEFORE the random tile was added. 
+    def getPreState(self) :
+        return self.grid.getPreState();
+
     def printBoard(self) :
         self.grid.printGrid()
 
@@ -27,6 +30,7 @@ class Game:
         self.grid = Grid(self.BOARD_SIZE)
         self.score = 0
         self.addStartTiles()
+        self.grid.setPreState(self.getState())
 
     def addRandomTile(self) :
         if self.grid.cellEmpty() :
@@ -86,7 +90,8 @@ class Game:
                         self.score += pow(2,val+1)
 
         #If anything happened to the board, add a random tile 
-        if moved and not self.trainingMode :
+        if moved :
+            self.grid.setPreState(self.grid.getState())
             self.addRandomTile()
 
     def cellInBounds(self, x, y) :
@@ -121,6 +126,7 @@ class Grid:
         else : 
             self.state = list(startState)
 
+        self.oldState = self.state;
     #Returns true if any cell is empty
     def cellEmpty(self) :
         return 0 in self.state
@@ -128,6 +134,13 @@ class Grid:
     #Returns the raw 16-size array state representation
     def getState(self) :
         return tuple(self.state)
+
+    #Returns the state BEFORE the random tile was added. 
+    def getPreState(self) :
+        return tuple(self.oldState)
+
+    def setPreState(self, state) :
+        self.oldState = state
 
     #Get a random empty cell, returns (x,y)
     def getEmptyCell(self) :

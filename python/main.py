@@ -1,9 +1,10 @@
 import game 
 import rlagent
-import sys, copy, random
+import sys, copy, random, time
 
 ### MAIN ###
 TDLearner = rlagent.TDAgent()
+
 TDLearner.loadWeights()
 
 mode = 'TD'
@@ -14,6 +15,7 @@ numGames = 0
 scoreamount =0
 maxTile = 0
 win = 0
+startTime = time.clock()
 while True:
     if (mode == 'manual') :
         print '------------------------------'
@@ -42,7 +44,7 @@ while True:
         move = TDLearner.chooseMove(game.getState())
         game.move(move)
         score = game.score - score
-        TDLearner.learnEval(lastState, move, score, game.getState())
+        TDLearner.learnEval(lastState, move, score, game.getState(), game.getPreState())
 
         #line = sys.stdin.readline()
 
@@ -56,14 +58,17 @@ while True:
         maxTile = max(maxTile, max(game.getState()))
         numGames += 1
         scoreamount +=game.score
-        if pow(2,maxTile) == 2048:
+        if pow(2,max(game.getState())) >= 2048:
             win += 1 
+
         game.reset()
         if (numGames == 20) :
             print 'Average score: '+ str(scoreamount/float(20)) + '. Max tile : ' + str(pow(2,maxTile)) +  '. Win rate: ' + str(win/float(20))
+            print 'Time elapsed: ' + str(time.clock() - startTime) +'. Per game: ' + str((time.clock() - startTime)/float(20))
             numGames = 0
             win = 0
             scoreamount= 0
             maxTile = 0
+            startTime = time.clock()
             TDLearner.saveWeights()
 
