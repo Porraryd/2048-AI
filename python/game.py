@@ -1,17 +1,18 @@
 import sys,random
-import collections
+import collections, copy
 
 UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
 
+BOARD_SIZE = 4
+START_TILES = 2
+
 class Game:
 
     def __init__(self, startState=None) :
-        self.BOARD_SIZE = 4
-        self.START_TILES = 2
-        self.grid = Grid(self.BOARD_SIZE, startState)
+        self.grid = Grid(BOARD_SIZE, startState)
         if startState == None:
             self.addStartTiles()
         self.score = 0
@@ -27,10 +28,9 @@ class Game:
         self.grid.printGrid()
 
     def reset(self) :
-        self.grid = Grid(self.BOARD_SIZE)
+        self.grid = Grid(BOARD_SIZE)
         self.score = 0
         self.addStartTiles()
-        self.grid.setPreState(self.getState())
 
     def addRandomTile(self) :
         if self.grid.cellEmpty() :
@@ -39,77 +39,125 @@ class Game:
             self.grid.setCell(x,y,value)
 
     def addStartTiles(self) : 
-        for i in range(self.START_TILES) :
+        for i in range(START_TILES) :
             self.addRandomTile()
 
     def move(self, move) :
-        moved = False;
 
-        #Determine travelsal order: 
-        xTrav = range(self.BOARD_SIZE) 
-        yTrav = range(self.BOARD_SIZE)
-        xd =0
-        yd =0
         if move == RIGHT :
-            xTrav = xTrav[::-1]
-            xd = 1
+            self.grid.rotate()
+            self.grid.rotate()
+            self.grid.rotate()
+            self.moveUp()
+            self.grid.rotate()
         elif move == DOWN :
-            yTrav = yTrav[::-1]
-            yd = 1
+            self.grid.rotate()
+            self.grid.rotate()
+            self.moveUp()
+            self.grid.rotate()
+            self.grid.rotate()
         elif move == LEFT :
-            xd = -1
+            self.grid.rotate()
+            self.moveUp()
+            self.grid.rotate()
+            self.grid.rotate()
+            self.grid.rotate()
+
         elif move == UP :
-            yd= -1
+            self.moveUp()
 
-        mergedTile = collections.Counter()
-        for x in xTrav : 
-            for y in yTrav : 
-                val = self.grid.getCell(x,y)
-                if (val != 0) : 
-                    #Start by moving the cell as far as possible
-                    curCell = (x,y)
-                    nextCell = (x+xd, y+yd)
-                    while (self.cellInBounds(nextCell[0],nextCell[1]) and
-                        self.grid.getCell(nextCell[0],nextCell[1]) == 0) :
-                        curCell = nextCell
-                        nextCell = (nextCell[0]+xd, nextCell[1]+yd)
-
-                    self.grid.setCell(curCell[0],curCell[1], val)
-                    if curCell != (x,y) :
-                        moved = True
-                        self.grid.setCell(x,y,0) 
-
-                    #Check for merge: 
-                    if (self.cellInBounds(nextCell[0],nextCell[1]) and
-                        mergedTile[nextCell] == 0 and
-                        self.grid.getCell(nextCell[0],nextCell[1]) == val) :
-                        self.grid.setCell(nextCell[0],nextCell[1], val +1)
-                        self.grid.setCell(curCell[0],curCell[1], 0)
-                        moved = True
-                        mergedTile[nextCell] = 1
-                        self.score += pow(2,val+1)
-
-        #If anything happened to the board, add a random tile 
+        moved = True
         if moved :
             self.grid.setPreState(self.grid.getState())
             self.addRandomTile()
 
+    def moveUp(self) :
+
+        for x in range(BOARD_SIZE) :
+            merged = False
+            emptyY = 0
+            for y in range(BOARD_SIZE) :
+                val = self.grid.getCell(x,y)
+                if val == 0 :
+                    continue
+                if emptyY > 0 and not merged and (self.grid.getCell(x,emptyY-1) == val) :
+                    self.grid.setCell(x, emptyY-1, val+1)
+                    self.grid.setCell(x,y,0)
+                    self.score += pow(2,val+1)
+                    merged = True
+                else :
+                    self.grid.setCell(x,y,0)
+                    self.grid.setCell(x,emptyY,val)
+                    emptyY += 1
+                    merged = False
+
+
     def cellInBounds(self, x, y) :
-        return (x > -1 and x < self.BOARD_SIZE and \
-                y > -1 and y < self.BOARD_SIZE )
+        return (x > -1 and x < BOARD_SIZE and \
+                y > -1 and y < BOARD_SIZE )
+
+
+    def getPossibleMoves(self) :
+        moves = []
+
+        for x in range(BOARD_SIZE) :
+            for y in range(BOARD_SIZE) :
+                if self.grid.getCell(x,y) != 0 :
+                    continue
+                if UP not in moves : 
+                    for y2 in range (y+1, BOARD_SIZE) :
+                        if (self.grid.getCell(x,y2) != 0) :
+                            moves.append(UP)
+                            break
+                if DOWN not in moves : 
+                    for y2 in range (y) :
+                        if (self.grid.getCell(x,y2) != 0) :
+                            moves.append(DOWN)
+                            break
+                if LEFT not in moves : 
+                    for x2 in range (x+1, BOARD_SIZE) :
+                        if (self.grid.getCell(x2,y) != 0) :
+                            moves.append(LEFT)
+                            break
+                if RIGHT not in moves : 
+                    for x2 in range (x) :
+                        if (self.grid.getCell(x2,y) != 0) :
+                            moves.append(RIGHT)
+                            break
+        if len(moves) == 4:
+            return set(moves)
+        if LEFT not in moves or RIGHT not in moves :  
+            for x in range(BOARD_SIZE-1) :
+                for y in range(BOARD_SIZE) :
+
+                    if (self.grid.getCell(x,y) == self.grid.getCell(x+1,y)) and self.grid.getCell(x,y) != 0 :
+                        moves.append(LEFT)
+                        moves.append(RIGHT)
+                        break
+
+        if UP not in moves or DOWN not in moves :  
+            for x in range(BOARD_SIZE) :
+                for y in range(BOARD_SIZE-1) :
+
+                    if (self.grid.getCell(x,y) == self.grid.getCell(x,y+1)) and self.grid.getCell(x,y) != 0 :
+                        moves.append(UP)
+                        moves.append(DOWN)
+                        break
+        return set(moves)
+
 
     def mergeExists(self) :
-        for x in range(self.BOARD_SIZE) :
-            for y in range(self.BOARD_SIZE) :
+        for x in range(BOARD_SIZE) :
+            for y in range(BOARD_SIZE) :
                 val = self.grid.getCell(x,y)
 
-                if (x != self.BOARD_SIZE-1  and self.grid.getCell(x+1, y) == val) :
+                if (x != BOARD_SIZE-1  and self.grid.getCell(x+1, y) == val) :
                     return True
                 if (x != 0 and self.grid.getCell(x-1, y) == val) :
                     return True
                 if (y != 0 and self.grid.getCell(x, y-1) == val) :
                     return True
-                if (y != self.BOARD_SIZE-1  and self.grid.getCell(x, y+1) == val) :
+                if (y != BOARD_SIZE-1  and self.grid.getCell(x, y+1) == val) :
                     return True
 
         return False
@@ -142,6 +190,28 @@ class Grid:
     def setPreState(self, state) :
         self.oldState = state
 
+    #ROTATION CLOCKWISE
+    def rotate(self) :
+        tempState = copy.copy(self.state)
+        self.state[0] = tempState[12]
+        self.state[1] = tempState[8]
+        self.state[2] = tempState[4]
+        self.state[3] = tempState[0]
+
+        self.state[4] = tempState[13]
+        self.state[5] = tempState[9]
+        self.state[6] = tempState[5]
+        self.state[7] = tempState[1]
+
+        self.state[8] = tempState[14]
+        self.state[9] = tempState[10]
+        self.state[10] = tempState[6]
+        self.state[11] = tempState[2]
+
+        self.state[12] = tempState[15]
+        self.state[13] = tempState[11]
+        self.state[14] = tempState[7]
+        self.state[15] = tempState[3]
     #Get a random empty cell, returns (x,y)
     def getEmptyCell(self) :
         indices = [i for i in range(self.GRID_SIZE*self.GRID_SIZE) if self.state[i] == 0]

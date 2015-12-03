@@ -1,21 +1,26 @@
 import game 
 import rlagent
 import sys, copy, random, time
-
+UP = 0
+RIGHT = 1
+DOWN = 2
+LEFT = 3
 ### MAIN ###
-TDLearner = rlagent.TDAgent()
+TDLearner = rlagent.TDAfterstateAgent()
 
 TDLearner.loadWeights()
 
 mode = 'TD'
 printBoard = False
 
+GAMES_PER_ROUND = 50
 game = game.Game()
 numGames = 0
 scoreamount =0
 maxTile = 0
 win = 0
 startTime = time.clock()
+moves = 0
 while True:
     if (mode == 'manual') :
         print '------------------------------'
@@ -35,21 +40,24 @@ while True:
             game.move(DOWN)
 
     if (mode == 'random') :
-        move = random.randint(0,3)
+        move = random.choice(game.getPossibleMoves())
         game.move(move)
 
     if (mode == 'TD') :
         lastState = game.getState()
         score = game.score
-        move = TDLearner.chooseMove(game.getState())
+        move = TDLearner.chooseMove(game.getState(),game.getPossibleMoves())
         game.move(move)
+        moves += 1
         score = game.score - score
-        TDLearner.learnEval(lastState, move, score, game.getState(), game.getPreState())
+        if (not game.gameOver()) :
+            TDLearner.learnEval(lastState, move, score, game.getState(), game.getPreState())
 
         #line = sys.stdin.readline()
 
     if printBoard :
         game.printBoard()
+        print game.getPossibleMoves()
         sys.stdin.readline()
 
     if (game.gameOver()) :
@@ -62,11 +70,12 @@ while True:
             win += 1 
 
         game.reset()
-        if (numGames == 20) :
-            print 'Average score: '+ str(scoreamount/float(20)) + '. Max tile : ' + str(pow(2,maxTile)) +  '. Win rate: ' + str(win/float(20))
-            print 'Time elapsed: ' + str(time.clock() - startTime) +'. Per game: ' + str((time.clock() - startTime)/float(20))
+        if (numGames == GAMES_PER_ROUND) :
+            print 'Average score: '+ str(scoreamount/float(GAMES_PER_ROUND)) + '. Max tile : ' + str(pow(2,maxTile)) +  '. Win rate: ' + str(win/float(GAMES_PER_ROUND))
+            print 'Time elapsed: ' + str(time.clock() - startTime) +'. Per game: ' + str((time.clock() - startTime)/float(GAMES_PER_ROUND))+ '. Moves/second: ' + str(moves/(time.clock() - startTime))
             numGames = 0
             win = 0
+            moves = 0
             scoreamount= 0
             maxTile = 0
             startTime = time.clock()
