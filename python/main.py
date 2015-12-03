@@ -13,7 +13,7 @@ TDLearner.loadWeights()
 mode = 'TD'
 printBoard = False
 
-GAMES_PER_ROUND = 50
+GAMES_PER_ROUND = 100
 game = game.Game()
 numGames = 0
 scoreamount =0
@@ -21,6 +21,7 @@ maxTile = 0
 win = 0
 startTime = time.clock()
 moves = 0
+totalGames = 0
 while True:
     if (mode == 'manual') :
         print '------------------------------'
@@ -65,6 +66,7 @@ while True:
 
         maxTile = max(maxTile, max(game.getState()))
         numGames += 1
+        totalGames += 1
         scoreamount +=game.score
         if pow(2,max(game.getState())) >= 2048:
             win += 1 
@@ -73,6 +75,7 @@ while True:
         if (numGames == GAMES_PER_ROUND) :
             print 'Average score: '+ str(scoreamount/float(GAMES_PER_ROUND)) + '. Max tile : ' + str(pow(2,maxTile)) +  '. Win rate: ' + str(win/float(GAMES_PER_ROUND))
             print 'Time elapsed: ' + str(time.clock() - startTime) +'. Per game: ' + str((time.clock() - startTime)/float(GAMES_PER_ROUND))+ '. Moves/second: ' + str(moves/(time.clock() - startTime))
+            print 'Total Games: ' + str(totalGames)
             numGames = 0
             win = 0
             moves = 0
