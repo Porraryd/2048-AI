@@ -26,8 +26,6 @@ class TDAgent() :
         #Calculate possible moves and their afterstate
         moves = []
 
-        simpleTD = False
-
         for i in possibleMoves :
             newGame = game.Game(state)
             newGame.move(i)
@@ -35,9 +33,6 @@ class TDAgent() :
             if newState == state :
                 continue
 
-            if simpleTD :
-                moves.append((newGame.score + self.V(newState), i))
-                continue
             #Calculate the possible transitions and their probabilities
             possibleNextStates = []
             possibleZeros = [index for index, e in enumerate(newState) if e == 0]
@@ -95,6 +90,7 @@ class TDAgent() :
     #Features extractor splitting the game board into smaller tiles
     def featureExtractor(self, state) :
         features = collections.Counter()
+
         #rows
         features['rows1', state[0:4]] = 1
         features['rows2', state[4:8]] = 1
@@ -286,6 +282,10 @@ class TDAfterstateAgent() :
     #Features extractor splitting the game board into smaller tiles
     def featureExtractor(self, state) :
         features = collections.Counter()
+
+        features[state] = 1
+        return features
+        
         #rows
         features['rows1', state[0:4]] = 1
         features['rows2', state[4:8]] = 1

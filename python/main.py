@@ -8,12 +8,12 @@ LEFT = 3
 ### MAIN ###
 TDLearner = rlagent.TDAfterstateAgent()
 
-TDLearner.loadWeights()
+#TDLearner.loadWeights()
 
 mode = 'TD'
 printBoard = False
 
-GAMES_PER_ROUND = 100
+GAMES_PER_ROUND = 10
 game = game.Game()
 numGames = 0
 scoreamount =0
@@ -41,8 +41,9 @@ while True:
             game.move(DOWN)
 
     if (mode == 'random') :
-        move = random.choice(game.getPossibleMoves())
+        move = random.choice(tuple(game.getPossibleMoves()))
         game.move(move)
+        moves += 1
 
     if (mode == 'TD') :
         lastState = game.getState()
@@ -82,5 +83,5 @@ while True:
             scoreamount= 0
             maxTile = 0
             startTime = time.clock()
-            TDLearner.saveWeights()
+            #TDLearner.saveWeights()
 
