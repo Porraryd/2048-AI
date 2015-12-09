@@ -8,12 +8,14 @@ LEFT = 3
 ### MAIN ###
 TDLearner = rlagent.TDAfterstateAgent()
 
-TDLearner.loadWeights()
+#TDLearner.loadWeights()
 
 mode = 'TD'
 printBoard = False
 
-GAMES_PER_ROUND = 50
+
+GAMES_PER_ROUND = 1000
+LEARNING_GAMES = 20000
 game = game.Game()
 numGames = 0
 scoreamount =0
@@ -22,6 +24,8 @@ win = 0
 startTime = time.clock()
 moves = 0
 totalGames = 0
+Learning = True
+
 while True:
     if (mode == 'manual') :
         print '------------------------------'
@@ -52,7 +56,7 @@ while True:
         game.move(move)
         moves += 1
         score = game.score - score
-        if (not game.gameOver()) :
+        if (Learning and not game.gameOver()) :
             TDLearner.learnEval(lastState, move, score, game.getState(), game.getPreState())
 
         #line = sys.stdin.readline()
@@ -67,7 +71,9 @@ while True:
 
         maxTile = max(maxTile, max(game.getState()))
         numGames += 1
-        totalGames += 1
+        if Learning : 
+            totalGames += 1
+            LEARNING_GAMES -= 1
         scoreamount +=game.score
         if pow(2,max(game.getState())) >= 2048:
             win += 1 
@@ -82,6 +88,14 @@ while True:
             moves = 0
             scoreamount= 0
             maxTile = 0
+            if (not Learning) :
+                Learning = True
+                print "Learning On"
+            elif (totalGames % 2000 == 0) :
+                Learning = False
+                print "Learning Off"
             startTime = time.clock()
             TDLearner.saveWeights()
 
+        if LEARNING_GAMES == 0 : 
+            Learning = False
