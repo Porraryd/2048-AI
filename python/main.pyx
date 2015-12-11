@@ -5,8 +5,10 @@ UP = 0
 RIGHT = 1
 DOWN = 2
 LEFT = 3
+
 ### MAIN ###
-TDLearner = rlagent.TDAfterstateAgent()
+
+TDLearner = rlagent.TDMiddlestateAgent()
 
 #TDLearner.loadWeights()
 
@@ -14,7 +16,7 @@ mode = 'TD'
 printBoard = False
 
 
-GAMES_PER_ROUND = 1000
+GAMES_PER_ROUND = 500
 LEARNING_GAMES = 20000
 game = game.Game()
 numGames = 0
@@ -95,7 +97,7 @@ while True:
                 Learning = False
                 print "Learning Off"
             startTime = time.clock()
-            TDLearner.saveWeights()
+            #TDLearner.saveWeights()
 
         if LEARNING_GAMES == 0 : 
             Learning = False

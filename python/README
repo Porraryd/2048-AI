@@ -1,0 +1,9 @@
+The code is split in three files:
+
+game.pyx contains the logic for the actual game. This includes logic to move the board, check for game over, score etc. 
+
+rlagent.pyx contain the two agents, TDAgent and TDMiddlestateAgent. They can choose a move given some state (chooseMove), and can also learn from experience (learnEval). The classes are very similar and should probably have used inheritance. Some helper function are also here.
+
+main.pyx is basically a main file, and is the file that should be executed. It will play games over and over again with the AI agent, giving stats after a certain amount of games. 
+
+To run, compile with setup.cy using Cython, and then open a python environment and do "import main".
